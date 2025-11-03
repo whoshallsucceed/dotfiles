@@ -1,48 +1,30 @@
 #!/bin/bash
 
 # Pop!_OS Keyboard Shortcuts Backup Script
-# Usage: backup-keyboard-shortcuts [backup-file]
+# Usage: backup-keyboard-shortcuts [backup-name]
 
 BACKUP_DIR="$HOME/.config/keyboard-shortcuts-backups"
-BACKUP_FILE="${1:-keyboard-shortcuts-$(date +%Y%m%d-%H%M%S).conf}"
+BACKUP_NAME="${1:-keyboard-shortcuts-$(date +%Y%m%d-%H%M%S)}"
+BACKUP_FILE="$BACKUP_DIR/$BACKUP_NAME"
 
 # Create backup directory if it doesn't exist
 mkdir -p "$BACKUP_DIR"
 
-# If no path separator in backup file, put it in the backup directory
-if [[ "$BACKUP_FILE" != */* ]]; then
-    BACKUP_FILE="$BACKUP_DIR/$BACKUP_FILE"
-fi
-
 echo "Creating keyboard shortcuts backup: $BACKUP_FILE"
-echo "# Pop!_OS Keyboard Shortcuts Backup - $(date)" > "$BACKUP_FILE"
-echo "# Run 'restore-keyboard-shortcuts \"$BACKUP_FILE\"' to restore these settings" >> "$BACKUP_FILE"
-echo "" >> "$BACKUP_FILE"
 
-# Function to backup settings schema
-backup_schema() {
-    local schema="$1"
-    local description="$2"
-    
-    if gsettings list-schemas | grep -q "^$schema$"; then
-        echo "# $description" >> "$BACKUP_FILE"
-        gsettings list-recursively "$schema" >> "$BACKUP_FILE"
-        echo "" >> "$BACKUP_FILE"
-    fi
-}
-
-# Backup all keyboard-related schemas
-backup_schema "org.gnome.desktop.wm.keybindings" "GNOME Window Manager Shortcuts"
-backup_schema "org.gnome.settings-daemon.plugins.media-keys" "Media Keys"
-backup_schema "org.gnome.settings-daemon.plugins.media-keys.custom-keybindings" "Custom Shortcuts"
-backup_schema "org.gnome.mutter" "Mutter Settings (includes overlay-key)"
-backup_schema "org.gnome.shell.keybindings" "GNOME Shell Shortcuts"
-
-# Backup Pop Shell shortcuts (if using Pop Shell)
-backup_schema "org.gnome.shell.extensions.pop-shell" "Pop Shell Extensions"
-
-# Backup desktop interface settings that might affect shortcuts
-backup_schema "org.gnome.desktop.interface" "Desktop Interface Settings"
+# Backup using dconf dump (proper format for restoration)
+{
+    echo "# Pop!_OS Keyboard Shortcuts Backup - $(date)"
+    echo "# Run 'restore-keyboard-shortcuts $BACKUP_NAME' to restore these settings"
+    echo ""
+    dconf dump /org/gnome/desktop/wm/keybindings/
+    dconf dump /org/gnome/settings-daemon/plugins/media-keys/
+    dconf dump /org/gnome/mutter/
+    dconf dump /org/gnome/mutter/keybindings/
+    dconf dump /org/gnome/shell/keybindings/
+    dconf dump /org/gnome/shell/extensions/pop-shell/
+    dconf dump /org/gnome/desktop/interface/
+} > "$BACKUP_FILE"
 
 echo "Backup completed: $BACKUP_FILE"
-echo "To restore, run: restore-keyboard-shortcuts \"$BACKUP_FILE\""
+echo "To restore, run: restore-keyboard-shortcuts $BACKUP_NAME"

@@ -1,15 +1,26 @@
 #!/bin/bash
 
-# Pop!_OS Keyboard Shortcuts Restore Script
-# Usage: restore-keyboard-shortcuts backup-file
+# Pop!_OS Keyboard Shortcuts Restore Script  
+# Usage: restore-keyboard-shortcuts <backup-name>
+
+BACKUP_DIR="$HOME/.config/keyboard-shortcuts-backups"
 
 if [ $# -eq 0 ]; then
-    echo "Usage: $0 \u003cbackup-file\u003e"
-    echo "Example: $0 ~/.config/keyboard-shortcuts-backups/keyboard-shortcuts-20250125-101733.conf"
+    echo "Usage: $0 <backup-name>"
+    echo "Example: $0 current-setup"
+    echo ""
+    echo "Available backups:"
+    ls -1 "$BACKUP_DIR" 2>/dev/null || echo "  (none found)"
     exit 1
 fi
 
-BACKUP_FILE="$1"
+BACKUP_NAME="$1"
+# Handle both bare names and full paths
+if [[ "$BACKUP_NAME" == /* ]]; then
+    BACKUP_FILE="$BACKUP_NAME"
+else
+    BACKUP_FILE="$BACKUP_DIR/$BACKUP_NAME"
+fi
 
 if [ ! -f "$BACKUP_FILE" ]; then
     echo "Error: Backup file '$BACKUP_FILE' not found"
@@ -18,52 +29,31 @@ fi
 
 echo "Restoring keyboard shortcuts from: $BACKUP_FILE"
 
-# Function to restore settings from backup file
-restore_settings() {
-    local temp_file=$(mktemp)
-    
-    # Extract non-comment lines from backup file
-    grep -v '^#' "$BACKUP_FILE" | grep -v '^$' \u003e "$temp_file"
-    
-    while IFS= read -r line; do
-        # Skip empty lines
-        [ -z "$line" ] && continue
-        
-        # Parse the gsettings line: schema key value
-        if [[ $line =~ ^([a-z.-]+[[:space:]]+[a-z.-]+)[[:space:]]+(.+)$ ]]; then
-            schema_key="${BASH_REMATCH[1]}"
-            value="${BASH_REMATCH[2]}"
-            
-            # Split schema and key
-            schema=$(echo "$schema_key" | awk '{print $1}')
-            key=$(echo "$schema_key" | awk '{print $2}')
-            
-            # Check if schema exists before trying to set
-            if gsettings list-schemas | grep -q "^$schema$"; then
-                echo "Setting $schema $key = $value"
-                gsettings set "$schema" "$key" "$value" 2\u003e/dev/null || {
-                    echo "Warning: Failed to set $schema $key"
-                }
-            else
-                echo "Warning: Schema $schema not found, skipping"
-            fi
+# Check if this is old format (gsettings list-recursively) or new format (dconf dump)
+if head -5 "$BACKUP_FILE" | grep -q "^org\.gnome"; then
+    echo "Detected old backup format. Converting to new format..."
+    # This is old format, need to manually set each value
+    grep -v '^#' "$BACKUP_FILE" | grep -v '^$' | while IFS= read -r line; do
+        if [[ $line =~ ^([a-z.-]+)[[:space:]]+([a-z0-9-]+)[[:space:]]+(.+)$ ]]; then
+            schema="${BASH_REMATCH[1]}"
+            key="${BASH_REMATCH[2]}"
+            value="${BASH_REMATCH[3]}"
+            gsettings set "$schema" "$key" "$value" 2>/dev/null
         fi
-    done \u003c "$temp_file"
+    done
+else
+    # New format with dconf - proper restoration
+    echo "This will overwrite your current keyboard shortcuts settings."
+    read -p "Are you sure you want to continue? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Restore cancelled"
+        exit 0
+    fi
     
-    rm -f "$temp_file"
-}
-
-# Confirm before proceeding
-echo "This will overwrite your current keyboard shortcuts settings."
-read -p "Are you sure you want to continue? (y/N): " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Restore cancelled"
-    exit 0
+    # Strip comments and load with dconf
+    grep -v '^#' "$BACKUP_FILE" | dconf load /
 fi
 
-# Perform the restore
-restore_settings
-
 echo "Keyboard shortcuts restore completed!"
-echo "You may need to log out and back in for all changes to take effect."
+echo "Restart GNOME Shell with: killall -3 gnome-shell"
