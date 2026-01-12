@@ -1,0 +1,10 @@
+#!/bin/bash
+
+openmail () {
+  local latest=$(ls -t tmp/llp_mails | head -1)
+  if [ -n "$latest" ]; then
+    xdg-open "tmp/llp_mails/$latest/rich.html"
+  else
+    echo "No emails found"
+  fi
+}
