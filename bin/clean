@@ -1,0 +1,85 @@
+#!/bin/bash
+
+set -e
+
+echo "================================"
+echo "System Cleanup Script"
+echo "================================"
+echo ""
+
+# Function to print section headers
+print_section() {
+    echo ""
+    echo "--- $1 ---"
+}
+
+# Function to show size before/after
+get_disk_usage() {
+    df -h / | awk 'NR==2 {print $3 " used, " $4 " available"}'
+}
+
+echo "Disk usage before cleanup: $(get_disk_usage)"
+echo ""
+
+# APT cleanup
+print_section "Cleaning APT cache"
+sudo apt clean
+sudo apt autoclean
+sudo apt autoremove -y
+
+# Docker cleanup
+if command -v docker &> /dev/null; then
+    print_section "Cleaning Docker (preserving active resources)"
+    docker system prune -f
+    echo "For more aggressive cleanup, run: docker system prune -a -f"
+else
+    echo "Docker not installed, skipping..."
+fi
+
+# Flatpak cleanup
+if command -v flatpak &> /dev/null; then
+    print_section "Cleaning Flatpak unused runtimes"
+    flatpak uninstall --unused -y || echo "No unused Flatpak runtimes to remove"
+    flatpak repair --user
+else
+    echo "Flatpak not installed, skipping..."
+fi
+
+# Snap cleanup (if installed)
+if command -v snap &> /dev/null; then
+    print_section "Cleaning old Snap versions"
+    snap list --all | awk '/disabled/{print $1, $3}' | while read snapname revision; do
+        sudo snap remove "$snapname" --revision="$revision"
+    done
+else
+    echo "Snap not installed, skipping..."
+fi
+
+# Clean journalctl logs (keep last 3 days)
+print_section "Cleaning system logs (keeping last 3 days)"
+sudo journalctl --vacuum-time=3d
+
+# Clean thumbnail cache
+print_section "Cleaning thumbnail cache"
+rm -rf ~/.cache/thumbnails/*
+
+# Clean trash
+print_section "Emptying trash"
+rm -rf ~/.local/share/Trash/*
+
+# Clean package manager caches
+print_section "Cleaning package manager caches"
+rm -rf ~/.cache/pip
+rm -rf ~/.cache/yarn
+rm -rf ~/.cache/npm
+rm -rf ~/.npm/_cacache
+
+# Clean old kernels (keep current + 1 previous)
+print_section "Cleaning old kernels"
+sudo apt autoremove --purge -y
+
+echo ""
+echo "================================"
+echo "Cleanup Complete!"
+echo "================================"
+echo "Disk usage after cleanup: $(get_disk_usage)"
