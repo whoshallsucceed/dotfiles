@@ -17,6 +17,6 @@ read -s -p "DB Password: " DBPASSWORD
 echo ""
 
 # truncate all the tables in one go
-mysql -Nse 'SHOW TABLES' -D $DATABASE_NAME -u$DBUSER -p$DBPASSWORD | while read table; do echo "SET FOREIGN_KEY_CHECKS = 0; TRUNCATE TABLE \`$table\`; SET FOREIGN_KEY_CHECKS = 1;"; done | mysql $DATABASE_NAME -u$DBUSER -p$DBPASSWORD
+mysql -Nse "SELECT table_name FROM information_schema.tables WHERE table_schema='$DATABASE_NAME' AND table_type='BASE TABLE'" -D $DATABASE_NAME -u$DBUSER -p$DBPASSWORD | while read table; do echo "SET FOREIGN_KEY_CHECKS = 0; TRUNCATE TABLE \`$table\`; SET FOREIGN_KEY_CHECKS = 1;"; done | mysql $DATABASE_NAME -u$DBUSER -p$DBPASSWORD
 
 exit 0
