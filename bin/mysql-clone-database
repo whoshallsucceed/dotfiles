@@ -56,5 +56,6 @@ if $clone_db; then
   sudo mysqldump -u$db_owner -p$db_password $db_source_name -r /tmp/dump.sql
   mysql_execute "CREATE DATABASE $db_target_name;"
   mysql_execute "USE $db_target_name; SOURCE /tmp/dump.sql;"
-  mysql_execute "GRANT ALL ON $db_target_name.* TO '$db_owner'@'localhost'; FLUSH PRIVILEGES;"
+  _debug "Executing SQL Statement: GRANT ALL ON $db_target_name.* TO '$db_owner'@'localhost'; FLUSH PRIVILEGES;"
+  sudo mysql -e "GRANT ALL ON $db_target_name.* TO '$db_owner'@'localhost'; FLUSH PRIVILEGES;"
 fi
