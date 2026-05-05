@@ -62,3 +62,9 @@ vim.api.nvim_create_autocmd("BufEnter", {
   end,
 })
 ---- END
+
+-- BEGIN ShaDa
+-- Ignore files in /tmp and .git directories from ShaDa
+-- This is an attempt in getting rid of this error:
+--   E138: All /home/bart/.local/state/nvim/shada/main.shada.tmp.X files exist, cannot write ShaDa file!
+vim.opt.shada:append({ "r/tmp/*", "r*.git*" })
