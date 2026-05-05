@@ -1,7 +1,6 @@
 #!/bin/env bash
 
-# Save to a new file with a ".ps1" extension
-files="/home/bart/Videos/raw"
+files="/home/bart/Videos/raw/"
 for f in "$files"*; do
   # I have to define the h264 video codec because it fails converting GoPro videos without this option.
   auto-editor --no-open --margin 0.2sec --video-codec h264 "$f"
