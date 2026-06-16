@@ -1,0 +1,54 @@
+#!/bin/bash
+# File: ~/bin/epp-dev-start
+
+PROJECT="eco-provider-portal"
+SESSION="EPP"
+SOCKET="epp"
+READY_FILE="/tmp/${PROJECT}-ready"
+
+# Helper function
+t() {
+  tmux -L "$SOCKET" "$@"
+}
+
+run() {
+  t send-keys -t "$@" Enter
+}
+
+wait_and_run() {
+    local pane="$1"
+    local cmd="$2"
+    run "$pane" "while [ ! -f $READY_FILE ]; do sleep 0.5; done && $cmd"
+}
+
+# Clean up
+rm -f "$READY_FILE"
+
+# Create session with specific socket AND source your main config
+t -f ~/.config/tmux/init.conf new-session -s "$SESSION" -n EDITOR -d -c ~/code/$PROJECT
+run "$SESSION:EDITOR" 'vim' Enter
+
+# Services window
+t new-window -t "$SESSION" -n SERVICES -c ~/code/$PROJECT
+run "$SESSION:SERVICES" "dc up -d --wait && touch $READY_FILE" Enter
+wait_and_run "$SESSION:SERVICES" "dab"
+run "$SESSION:SERVICES" "s"
+
+# Frontend pane
+t split-window -t "$SESSION:SERVICES" -c ~/code/$PROJECT
+wait_and_run "$SESSION:SERVICES" "dab"
+run "$SESSION:SERVICES" "bin/dev"
+
+# Sidekiq pane
+t split-window -t "$SESSION:SERVICES" -c ~/code/$PROJECT
+wait_and_run "$SESSION:SERVICES" "dab"
+run "$SESSION:SERVICES" "bin/sidekiq"
+
+# Ops window
+t new-window -t "$SESSION" -n OPS -c ~/code/$PROJECT
+
+# Select editor
+t select-window -t "$SESSION:EDITOR"
+
+# Attach to session
+t attach -t "$SESSION"
