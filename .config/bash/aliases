@@ -62,11 +62,6 @@ alias llpn='tmux -L LLPN -f ~/.config/tmux/llpn.conf a'
 alias llpt='tmux -L LLPT -f ~/.config/tmux/llpt.conf a'
 alias epp='~/bin/epp-dev-start'
 alias infra='tmux -L INFRA -f ~/.config/tmux/infra.conf a'
-alias krystal='tmux -L KRYSTAL -f ~/.config/tmux/krystal.conf a'
-alias spine='tmux -L SPINE -f ~/.config/tmux/spine.conf a'
-alias 5m5v='tmuxnew 5m5v'
-alias vivi-client='tmux -L vivi-client -f ~/.config/tmux/vivi-client.conf a'
-alias vivi-server='tmux -L vivi-server -f ~/.config/tmux/vivi-server.conf a'
 
 # DOCKER {{{
 alias dc="docker compose -f .devcontainer/docker-compose.yml"
@@ -87,6 +82,7 @@ function tmuxnew () {
 
 alias private-session='nohup chromium-browser --temp-profile > /dev/null 2>&1 &'
 
+# SERVICED {{{
 function start () {
   for _service in $@
   do
