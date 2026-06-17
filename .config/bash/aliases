@@ -100,3 +100,8 @@ function stop () {
     echo "INFO -- $_service stopped"
   done
 }
+
+# }}}
+
+alias td='n ~/code/todo.todo'
+alias k='pkill -9 -f'
