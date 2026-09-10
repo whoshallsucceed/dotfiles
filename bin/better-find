@@ -1,0 +1,47 @@
+#!/usr/env bash
+
+################################################################################
+# better-find
+#
+# `find` does not have an option to filter out 'Permission Denied' errors. It
+# rarely has any real value and it creates a lot of noise.
+#
+# So, as a bearded terminal guy, I wrote this little piece of code to make `find` better.
+#
+# USAGE
+#
+# Run:
+# $ better-find <filename>
+#
+# Where:
+#   <filename> is the file's name you're looking for
+#
+# CONTRIBUTING
+#
+# Want to contribute? Awesome! Thank you so much!
+#
+## HOW?
+#
+# 1. Fork it (https://help.github.com/articles/fork-a-repo)
+# 2. Create a feature branch (`git checkout -b my-new-feature`)
+# 3. Commit changes (`git commit -am 'Add my new feature'`)
+# 4. Push to the branch (`git push origin my-new-feature`)
+# 5. Create a Pull Request (https://help.github.com/articles/using-pull-requests)
+################################################################################
+
+
+usage () {
+  echo "usage: better-find <filename>"
+  echo "\t <filename> is the file's name you're looking for"
+}
+
+### Run
+
+if [ "$1" = ""]; then
+  usage
+  exit 1
+fi
+
+filename=$1
+
+find / -name $filename 2> >(grep -v 'Permission denied$' >&2)
