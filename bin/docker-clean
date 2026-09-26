@@ -4,7 +4,7 @@
 # caches, anonymous volumes) without stopping or restarting anything
 # that is currently running.
 
-set -e
+#set -e
 
 print_section() {
     echo ""
