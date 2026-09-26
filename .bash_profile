@@ -58,3 +58,6 @@ for file in ~/.bash_completion.d/*; do
   [ -r "$file" ] && [ -f "$file" ] && source "$file"
 done
 unset file
+
+# Mammouth Code
+export PATH="$HOME/.mammouth/bin:$PATH"
