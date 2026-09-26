@@ -232,23 +232,36 @@ bindsym $mod+Ctrl+L exec --no-startup-id i3lock
 # Suspend
 bindsym $mod+Ctrl+S exec --no-startup-id systemctl suspend
 
+# Power off
+bindsym $mod+Ctrl+P exec --no-startup-id systemctl poweroff
+
+# Reboot
+bindsym $mod+Ctrl+R exec --no-startup-id systemctl reboot
+
 bindsym Ctrl+period exec --no-startup-id flatpak run it.mijorus.smile
+# Floating keybinding cheatsheet (toggle)
+for_window [class="i3-cheatsheet"] floating enable, border pixel 2, resize set 960 720, move position center
+bindsym $mod+F1 exec --no-startup-id ~/.config/i3/cheatsheet.sh
 
-# ---
-
-set $mode_display Config monitor resolution - HDMINOTBOOT (1) - HDMIBOOT (2) - LAPTOP (3) - Five (4)
-
+# --- Displays / monitors (autorandr) ---
+# Auto-detect monitor hotplug and reconfigure (extend when added, revert when removed).
+exec_always --no-startup-id ~/.config/i3/monitor-watch.sh
+# Quick display switcher menu (Pop!_OS-style Super+P)
+bindsym $mod+p exec --no-startup-id ~/.config/i3/display-menu.sh
+# Direct display shortcuts (each shows an on-screen notification)
+bindsym $mod+Shift+p exec --no-startup-id ~/.config/i3/save-layout.sh
+bindsym $mod+Shift+m exec --no-startup-id ~/.config/i3/cycle-primary.sh
+bindsym $mod+Shift+w exec --no-startup-id ~/.config/i3/swap-sides.sh
+set $mode_display Display: (e)xtend (m)irror (l)aptop (c)ycle | (s)ave (p)rimary s(w)ap
 mode "$mode_display" {
-    # When HDMI is plugged after startup
-    bindsym 1 exec --no-startup-id ~/.screenlayout/hdmi-not-plugged-at-boot.sh, mode "default"
-    # When HDMI is already plugged at startup
-    bindsym 2 exec --no-startup-id ~/.screenlayout/hdmi-plugged-at-boot.sh, mode "default"
-    bindsym 3 exec --no-startup-id ~/.screenlayout/laptop-only.sh, mode "default"
-    bindsym 4 exec --no-startup-id ~/.screenlayout/five.sh, mode "default"
-
-    # back to normal: Enter or Escape
+    bindsym e exec --no-startup-id autorandr horizontal, mode "default"
+    bindsym m exec --no-startup-id autorandr common, mode "default"
+    bindsym l exec --no-startup-id autorandr laptop, mode "default"
+    bindsym c exec --no-startup-id autorandr --cycle, mode "default"
+    bindsym s exec --no-startup-id ~/.config/i3/save-layout.sh, mode "default"
+    bindsym p exec --no-startup-id ~/.config/i3/cycle-primary.sh, mode "default"
+    bindsym w exec --no-startup-id ~/.config/i3/swap-sides.sh, mode "default"
     bindsym Return mode "default"
     bindsym Escape mode "default"
 }
-
 bindsym $mod+Shift+S mode "$mode_display"
