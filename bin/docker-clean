@@ -1,0 +1,50 @@
+#!/bin/bash
+# File: ~/bin/docker-clean
+# Reclaim Docker disk space (exited containers, unused images, build
+# caches, anonymous volumes) without stopping or restarting anything
+# that is currently running.
+
+set -e
+
+print_section() {
+    echo ""
+    echo "--- $1 ---"
+}
+
+if ! command -v docker &> /dev/null; then
+    echo "Docker not installed, aborting."
+    exit 1
+fi
+
+echo "================================"
+echo "Docker Cleanup"
+echo "================================"
+
+print_section "Disk usage before cleanup"
+docker system df
+
+print_section "Removing exited containers"
+docker container prune -f
+
+print_section "Removing images not used by any container"
+docker image prune -a -f
+
+print_section "Clearing default builder cache"
+docker builder prune -a -f
+
+print_section "Clearing cache of other buildx builders"
+docker buildx ls 2>/dev/null | awk 'NR>1 && $1 !~ /^\\/ {name=$1; gsub(/\*$/,"",name); if (name != "" && name != "default") print name}' | while read -r builder; do
+    echo "-> $builder"
+    docker buildx prune -f --builder "$builder" || echo "   skipped (builder unreachable)"
+done
+
+print_section "Removing unused anonymous volumes (named volumes are preserved)"
+docker volume prune -f
+
+print_section "Disk usage after cleanup"
+docker system df
+
+echo ""
+echo "================================"
+echo "Docker cleanup complete"
+echo "================================"
