@@ -195,18 +195,17 @@ bar {
 # Arandr
 for_window [class="Arandr"] floating enable
 
-# Open and move apps
-exec --no-startup-id i3-msg 'workspace 1; exec flatpak run app.zen_browser.zen'
-exec --no-startup-id i3-msg 'workspace 2; exec flatpak run com.google.Chrome'
-exec --no-startup-id i3-msg 'workspace 3; exec /home/bart/.cargo/bin/alacritty'
-exec --no-startup-id i3-msg 'workspace 5; exec flatpak run com.slack.Slack'
+# Autostart apps via a wrapper that sets DBUS_SESSION_BUS_ADDRESS (needed for flatpak Chrome/Slack);
+# window placement is handled by the assign rules below
+exec --no-startup-id ~/.config/i3/autostart.sh
 
-# Run `xprop | grep WM_CLASS | awk '{ print $4 }'`
-# Then click on the app and the class name will be displayed in the terminal
+# Assign apps to workspaces by WM_CLASS.
+# Discover a window's class with: xprop WM_CLASS (then click the window)
 assign [class="(?i)zen"] $ws1
-assign [class="(?i)oogle-chrome"] $ws2
-assign [class="(?i)lacritty"] $ws3
-assign [class="(?i)lack"] $ws5
+assign [class="(?i)google-chrome"] $ws2
+assign [class="(?i)alacritty"] $ws3
+assign [class="dev.warp.Warp"] $ws3
+assign [class="(?i)slack"] $ws5
 assign [class="(?i)TelegramDesktop"] $ws5
 assign [class="(?i)Discord"] $ws5
 
