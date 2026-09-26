@@ -32,4 +32,10 @@ if _has fzf && _has ag; then
   '
 fi
 
+# Reach the systemd user D-Bus session bus when it is not already set. cosmic-greeter
+# starts i3 without exporting this, so flatpak apps launched from a terminal fail.
+if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && [ -S "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/bus" ]; then
+  export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/bus"
+fi
+
 # vim: ft=sh
