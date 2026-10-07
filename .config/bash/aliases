@@ -48,11 +48,6 @@ alias ducks='du -cks * | sort -rn | head'
 # for ubuntu (and more?), remap caps lock to ctrl
 alias nocaps="setxkbmap -option ctrl:nocaps"
 
-# Aliases for Xilam Connect/DisConnect
-alias xc='wg-quick up $HOME/.config/tunsafe-profiles/krystal3.conf'
-alias xdc='wg-quick down $HOME/.config/tunsafe-profiles/krystal3.conf'
-alias wg='sudo wg'
-
 alias open='xdg-open'
 
 alias tmux='tmux -f ~/.config/tmux/init.conf'
